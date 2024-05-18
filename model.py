@@ -9,6 +9,7 @@ from matplotlib.cm import ScalarMappable
 from solar import Solar
 
 class Motor:
+    # TODO: Frontal area variance
     def __init__(
         self, wheel_radius, mass, wheels, aerodynamic_coef, frontal_area, zero_speed_crr
     ):
@@ -24,7 +25,7 @@ class Motor:
         self.dynamic_speed_crr = (self.no_of_wheels / 3) * 4.1 * 10 ** (-5) * speed
         rolling_resistance = (self.mass * 9.8 * (self.zero_speed_crr + self.dynamic_speed_crr))  # Assume coefficient of friction = 0.01
         drag_force = (self.frontal_area * 0.5 * self.aerodynamic_coef * 1.225 * speed**2)  # Air density = 1.225 kg/m^3
-        power = (rolling_resistance + drag_force + self.mass*acceleration + self.mass*9.8*np.sin(slope)) * abs(speed)
+        power = (rolling_resistance + drag_force + self.mass * acceleration + self.mass*9.8*np.sin(slope)) * abs(speed)
         return power
 
 
