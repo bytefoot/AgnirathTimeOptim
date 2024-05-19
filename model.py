@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 
 import config
 from solar import Solar
-from constraints import get_bounds, constraint_battery, objective
+from constraints import get_bounds, constraint_battery, objective, constraint_acceleration
+
+EPSILON = 1e-8
 
 class Motor:
     def __init__(self, wheel_radius, mass, wheels, CDA, zero_speed_crr):
@@ -44,7 +46,9 @@ class ElectricCar:
         start_speed, stop_speed, dx, slope
     ):
         speed = (start_speed + stop_speed) / 2
-        # instantaneous time elapsed        
+        if(dx == 0):
+            print("ture2")
+        # instantaneous time elapsed 
         dt = self.calculate_dt(start_speed, stop_speed, dx)
 
         # current power consumption
@@ -63,7 +67,11 @@ class ElectricCar:
         )
     
     def calculate_dt(self, start_speed, stop_speed, dx):
-        return 2 * dx /(start_speed + stop_speed)
+        if (dx == 0 ):
+            print("ture")
+        dt = 2 * dx /(start_speed + stop_speed + EPSILON)
+        # print(dt)
+        return dt
 
 
 def main():
@@ -90,6 +98,13 @@ def main():
                 config.BatteryCapacity * (1 - config.DeepDischargeCap),
                 RaceStartTime)
         },
+        {
+            "type": "ineq",
+            "fun": constraint_acceleration,
+            "args": (
+                car, route_df
+            )
+        }
     ]
 
     print("started")
@@ -105,11 +120,12 @@ def main():
     )
 
     print("done.")
+    print("Total time taken for race:", objective(np.array(optimised_velocity_profile.x), car, route_df), "\bs")
     # print(optimised_velocity_profile)
 
     plt.plot(
         np.array(route_df['CumulativeDistance(km)']),
-        optimised_velocity_profile,
+        optimised_velocity_profile.x[:-1],
         label='Velocity Profile'
     )
     plt.xlabel('Distance (km)')
@@ -118,7 +134,6 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.show()
-
 
 
 if __name__ == "__main__":

@@ -29,4 +29,5 @@ g = GravityAcc = 9.8  # m/s^2
 
 # ---------------------------------------------------------------------------------------------------------
 # Car Constraints
-MaxVelocity = 36
+MaxVelocity = 36  # m/s
+MaxAcceleration  = 3  # m/s^2
