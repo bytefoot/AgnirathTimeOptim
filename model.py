@@ -7,36 +7,41 @@ from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 
 from solar import Solar
+import config
 
 class Motor:
-    # TODO: Frontal area variance
-    def __init__(
-        self, wheel_radius, mass, wheels, aerodynamic_coef, frontal_area, zero_speed_crr
-    ):
+    def __init__(self, wheel_radius, mass, wheels, CDA, zero_speed_crr):
         self.wheel_radius = wheel_radius  # inches
         self.mass = mass  # kg
-        self.aerodynamic_coef = aerodynamic_coef
-        self.frontal_area = frontal_area  # m^2
+        self.CDA = CDA
         self.zero_speed_crr = zero_speed_crr  # 0.003
         self.no_of_wheels = wheels
 
-    def calculate_power(self, speed, acceleration, slope):
+    def calculate_power(self, speed, acceleration, slope, dir, wind_speed, wind_dir):
         # Calculate power required to overcome rolling resistance and aerodynamic drag
         self.dynamic_speed_crr = (self.no_of_wheels / 3) * 4.1 * 10 ** (-5) * speed
+        
         rolling_resistance = (self.mass * 9.8 * (self.zero_speed_crr + self.dynamic_speed_crr))  # Assume coefficient of friction = 0.01
-        drag_force = (self.frontal_area * 0.5 * self.aerodynamic_coef * 1.225 * speed**2)  # Air density = 1.225 kg/m^3
-        power = (rolling_resistance + drag_force + self.mass * acceleration + self.mass*9.8*np.sin(slope)) * abs(speed)
+        
+        # drag_force = get_drag_force(self.CDA, speed, wind_speed, wind_dir, dir)
+        drag_force = 0.5 * self.CDA * config.AirDensity * (speed ** 2)
+        
+        power = (
+            rolling_resistance + drag_force
+            + self.mass * acceleration
+            + self.mass*9.8*np.sin(slope)
+        ) * abs(speed)
+
         return power
 
 
 class ElectricCar:
-    def __init__(self, motor, distance, battery_capacity, route):
-        self.motor = motor  
-        self.dt = 1  # seconds
-        self.start_speed = 0  # m/s
+    def __init__(self, motor, distance, battery_capacity):
+        self.motor = motor 
 
-        self.route = route  # [distance, elevation]
-        self.distance = distance  # meters
+        self.energy_consumed_car = 0  # Wh
+        self.distance_traveled = 0  # m/s
+        self.time_elapsed = 0  # seconds
 
         # Battery
         self.remaining_energy = battery_capacity
@@ -50,10 +55,6 @@ class ElectricCar:
         self.distance_to_travel = distance_to_travel
         self.slope = slope
 
-        self.energy_consumed_car = 0  # Wh
-        self.distance_traveled = 0  # m/s
-        self.time_elapsed = 0  # seconds
-
 
         ctr = 0
         
@@ -62,50 +63,16 @@ class ElectricCar:
         self.power = self.motor.calculate_power(self.speed, (stop_speed - start_speed)/self.time_elapsed, self.slope)
         self.energy_consumed_car = self.power*self.time_elapsed/3600
         remaining_energy -= self.energy_consumed_car    
-        # while self.distance_traveled < distance_to_travel and self.remaining_energy > 1:  
-        #     # ctr +=1 
-        #     # if (ctr == 10000):
-        #         # print(self.speed)  
-        #     if self.speed < 30:
-        #         self.speed += self.acceleration * self.dt
-        #     elif self.speed >= 30:
-        #         self.speed = 30
-        #         acceleration = 0
-        #     if self.speed <= stop_speed:
-        #         self.speed = stop_speed
-        #         acceleration = 0
 
-        #     # print(self.speed)
-            
-        #     # print("hi")
-        #     self.power = self.motor.calculate_power(self.speed,self.acceleration,self.slope)
-        #     self.time_elapsed += self.dt
-        #     self.energy = self.power * self.dt / 3600
-        #     self.instantaneous_distance = self.speed * self.dt
-        #     self.energy_consumed_car += self.energy
-        #     remaining_energy -= self.energy
-        #     self.distance_traveled += self.instantaneous_distance
-        # print(
-        #     f"Time: {self.time_elapsed} seconds, Distance: {self.distance_traveled:.2f} meters, Speed:{self.speed:.3f} m/s, Acceleration:{self.acceleration:.3f} m/s^2, Energy Remaining: {remaining_energy:.3f} Wh"
-        # )
 
-        return [
+        return (
             self.time_elapsed,
             self.distance_traveled,
             self.speed,
             self.acceleration,
             self.energy_consumed_car,
             self.remaining_energy,
-        ]
-    
-
-
-
-        # for drive_details in drive_results:
-        #     print(
-        #         f"Time: {drive_details[0]} s, Distance: {drive_details[1]:.2f} m, Speed:{drive_details[2]:.3f} m/s, Acceleration: {drive_details[3]:.1f} m/s^2, Energy Remaining: {drive_details[4]:.3f} Wh"
-        #     )
-
+        )
 
 def main():
     distance = 8000  # meters
