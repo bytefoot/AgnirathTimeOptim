@@ -110,6 +110,7 @@ class Emulator:
         self.cell_efficiency = cell_efficiency
         self.area = area
 
+    @staticmethod
     def _calc_solar_irradiance(time):
         return 1073.099 * np.exp(-0.5 * ((time - 51908.735) / 11484.950)**2)
 
