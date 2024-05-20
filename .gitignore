@@ -1,4 +1,7 @@
-workspace.ipynb
 .DS_Store
+
 .venv
 __pycache__
+
+workspace*.ipynb
+sample.py
