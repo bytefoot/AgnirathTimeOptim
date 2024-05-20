@@ -1,6 +1,7 @@
 
 # Model Settings
 ModelMethod = "trust-constr"
+InitialGuessVelocity = 36
 
 # ---------------------------------------------------------------------------------------------------------
 # Car Data

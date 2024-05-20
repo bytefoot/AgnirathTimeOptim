@@ -21,9 +21,10 @@ def objective(velocity_profile, car, route_df):
     return cummulative_time
 
 
-def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity, start_time):
-    max_energy_utilisation = 0
-    cumE = 0
+def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity, battery_capacity, start_time):
+    battery_level = safe_battery_capacity
+    min_bl = battery_level
+    max_bl = 0
     time_elapsed = 0
 
     for i in range(len(v_prof)-1):
@@ -32,13 +33,38 @@ def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity
             route_df.iloc[i, 0], route_df.iloc[i, 2]
         )
 
-        dE -= solar_panel.calculate_energy(dt, start_time+time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
-        cumE += dE
-        max_energy_utilisation = max(cumE, max_energy_utilisation)
+        solE = solar_panel.calculate_energy(dt, start_time+time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
+        battery_level +=  - dE + solE
+
+        min_bl = min(battery_level, min_bl)
+        max_bl = max(battery_level, max_bl)
 
         time_elapsed += dt
-    
-    return safe_battery_capacity - max_energy_utilisation
+
+    return min_bl
+
+def constraint_battery2(v_prof, car, solar_panel, route_df, safe_battery_capacity, battery_capacity, start_time):
+    battery_level = safe_battery_capacity
+    min_bl = safe_battery_capacity
+    max_bl = 0
+    time_elapsed = 0
+
+    for i in range(len(v_prof)-1):
+        dt, dx, P, dE = car.drive_sim(
+            v_prof[i], v_prof[i+1],
+            route_df.iloc[i, 0], route_df.iloc[i, 2]
+        )
+
+        solE = solar_panel.calculate_energy(dt, start_time+time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
+        battery_level +=  - dE + solE
+
+        min_bl = min(battery_level, min_bl)
+        max_bl = max(battery_level, max_bl)
+
+        time_elapsed += dt
+
+    # print(min_bl, (safe_battery_capacity - max_bl))
+    return (safe_battery_capacity - max_bl)
 
 def constraint_acceleration(v_prof, car, route_df):
     max_accel = 0
