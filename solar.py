@@ -1,6 +1,8 @@
 from solcast import forecast
 import numpy as np
 
+import config
+
 cache = {}
 
 class Solcast:
@@ -106,6 +108,8 @@ class Solcast:
 
 
 class Emulator:
+    DT = config.RaceEndTime - config.RaceStartTime
+
     def __init__(self, cell_efficiency, area):
         self.cell_efficiency = cell_efficiency
         self.area = area
@@ -115,7 +119,8 @@ class Emulator:
         return 1073.099 * np.exp(-0.5 * ((time - 51908.735) / 11484.950)**2)
 
     def getincident(self, latitude, longitude, globaltime):
-        intensity = self._calc_solar_irradiance(globaltime)
+        gt = globaltime % self.DT
+        intensity = self._calc_solar_irradiance(config.RaceStartTime + gt)
         return intensity
     
     # Function to retrieve data from the API or cache

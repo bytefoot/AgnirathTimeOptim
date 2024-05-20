@@ -21,7 +21,7 @@ def objective(velocity_profile, car, route_df):
     return cummulative_time
 
 
-def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity, battery_capacity, start_time):
+def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity):
     battery_level = safe_battery_capacity
     min_bl = battery_level
     max_bl = 0
@@ -33,7 +33,7 @@ def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity
             route_df.iloc[i, 0], route_df.iloc[i, 2]
         )
 
-        solE = solar_panel.calculate_energy(dt, start_time+time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
+        solE = solar_panel.calculate_energy(dt, time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
         battery_level +=  - dE + solE
 
         min_bl = min(battery_level, min_bl)
@@ -43,7 +43,7 @@ def constraint_battery(v_prof, car, solar_panel, route_df, safe_battery_capacity
 
     return min_bl
 
-def constraint_battery2(v_prof, car, solar_panel, route_df, safe_battery_capacity, battery_capacity, start_time):
+def constraint_battery2(v_prof, car, solar_panel, route_df, safe_battery_capacity):
     battery_level = safe_battery_capacity
     min_bl = safe_battery_capacity
     max_bl = 0
@@ -55,7 +55,7 @@ def constraint_battery2(v_prof, car, solar_panel, route_df, safe_battery_capacit
             route_df.iloc[i, 0], route_df.iloc[i, 2]
         )
 
-        solE = solar_panel.calculate_energy(dt, start_time+time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
+        solE = solar_panel.calculate_energy(dt, time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
         battery_level +=  - dE + solE
 
         min_bl = min(battery_level, min_bl)

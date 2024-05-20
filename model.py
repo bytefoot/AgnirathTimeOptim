@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import config
 from solar import Solar
 from constraints import get_bounds, constraint_battery, objective, constraint_acceleration, constraint_battery2
+from profiles import extract_profiles
 
 EPSILON = 1e-8
 
@@ -85,7 +86,6 @@ def main():
 
     N_V = len(route_df) + 1
     velocity_profile = np.ones(N_V) * config.InitialGuessVelocity
-    RaceStartTime = 9 * 3600
 
     bounds = get_bounds(N_V)
     constraints= [
@@ -95,17 +95,15 @@ def main():
             "args": (
                 car, solar_panel, route_df,
                 config.BatteryCapacity * (1 - config.DeepDischargeCap),
-                config.BatteryCapacity,
-                RaceStartTime)
+            )
         },
         {
             "type": "ineq",
             "fun": constraint_battery2,
             "args": (
                 car, solar_panel, route_df,
-                config.BatteryCapacity * (1 - config.DeepDischargeCap),
-                config.BatteryCapacity,
-                RaceStartTime)
+                config.BatteryCapacity * (1 - config.DeepDischargeCap)
+            )
         },
         {
             "type": "ineq",
@@ -116,7 +114,8 @@ def main():
         }
     ]
 
-    print("started")
+    print("Starting Optimisation")
+    print("="*60)
     optimised_velocity_profile = optimize.minimize(
         objective, velocity_profile,
         args=(car, route_df),
@@ -133,51 +132,16 @@ def main():
     print("Total time taken for race:", objective(np.array(optimised_velocity_profile), car, route_df), "\bs")
     # print(optimised_velocity_profile)
 
-    plt.plot(
-        np.array(route_df['CumulativeDistance(km)']),
-        optimised_velocity_profile[:-1],
-        label='Velocity Profile'
+    # route_df['CumulativeDistance(km)'], optimised_velocity_profile
+    outdf = pd.DataFrame(
+        dict(zip(
+            ['CummulativeDistance', 'Velocity', 'Acceleration', 'Battery', 'EnergyConsumption', 'Solar', 'Time'],
+            extract_profiles(car, solar_panel, optimised_velocity_profile, route_df)
+        ))
     )
-    plt.plot(
-        np.array(route_df['CumulativeDistance(km)']),
-        [36,] * len(route_df['CumulativeDistance(km)']),
-        color='red',
-        linestyle='dashed'
-    )
-    plt.xlabel('Distance (km)')
-    plt.ylabel('Velocity (m/s)')
-    plt.title('Velocity Profile')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
 
-    optimised_battery_profile = np.ones(len(optimised_velocity_profile)) * config.BatteryCapacity
-    cumE = 0
-    time_elapsed = 0
-
-    for i in range(len(optimised_velocity_profile)-1):
-        dt, dx, P, dE = car.drive_sim(
-            optimised_velocity_profile[i], optimised_velocity_profile[i+1],
-            route_df.iloc[i, 0], route_df.iloc[i, 2]
-        )
-
-        dE -= solar_panel.calculate_energy(dt, RaceStartTime+time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
-        cumE += dE
-
-        time_elapsed += dt
-        optimised_battery_profile[i+1] -= cumE
-
-    plt.plot(
-        np.array(route_df['CumulativeDistance(km)']),
-        optimised_battery_profile[:-1] * 100 / config.BatteryCapacity,
-        label='Battery % Profile'
-    )
-    plt.xlabel('Distance (km)')
-    plt.ylabel('Battery (%)')
-    plt.title('Battery Profile')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    outdf.to_csv("./runlog/run_dat.csv", index=False)
+    print("Written results to `run_dat.csv`")
 
 if __name__ == "__main__":
     main()
