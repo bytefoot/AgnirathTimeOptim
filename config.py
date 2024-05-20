@@ -1,10 +1,12 @@
 
 # Model Settings
 ModelMethod = "trust-constr"
-InitialGuessVelocity = 1
+InitialGuessVelocity = 36
 
 RaceStartTime = 9 * 3600  # 9:00 am
 RaceEndTime = (12 + 6) * 3600  # 6:00 pm
+
+SamplingRate = 10000
 
 # ---------------------------------------------------------------------------------------------------------
 # Car Data
