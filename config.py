@@ -1,7 +1,7 @@
 
 # Model Settings
 ModelMethod = "trust-constr"
-InitialGuessVelocity = 1
+InitialGuessVelocity = 35
 
 RaceStartTime = 9 * 3600  # 9:00 am
 RaceEndTime = (12 + 6) * 3600  # 6:00 pm
@@ -10,28 +10,28 @@ RaceEndTime = (12 + 6) * 3600  # 6:00 pm
 # Car Data
 
 # Battery
-BatteryCapacity = 3000  # Wh
+BatteryCapacity = 3055  # Wh
 DeepDischargeCap = 0.20  # 20%
 
 # Physical Attributes
-WheelRadius = 19 / 39.37  # Convert `in` to `m``
-Mass = 314  # kg
+WheelRadius = 0.2785
+Mass = 270 # kg
 Wheels = 3
 
 # Resistive Coeff
 CDA = 0.092
-ZeroSpeedCrr = 0.003
+ZeroSpeedCrr = 0.0045
 
 # Solar Panel Data
-PanelArea = 4  # m^2
-PanelEfficiency = 0.17
+PanelArea = 6  # m^2
+PanelEfficiency = 0.19
 
 # ---------------------------------------------------------------------------------------------------------
 # Physical Constants
-AirDensity = 1.225  # kg/m^3
-g = GravityAcc = 9.8  # m/s^2
+AirDensity = 1.192 # kg/m^3
+g = GravityAcc = 9.81 # m/s^2
 
 # ---------------------------------------------------------------------------------------------------------
 # Car Constraints
 MaxVelocity = 36  # m/s
-MaxAcceleration  = 3  # m/s^2
+MaxAcceleration  = 1.1  # m/s^2

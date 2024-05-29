@@ -2,7 +2,7 @@
 
 .venv
 __pycache__
-runlog/
+run_dat.csv
 
 workspace*.ipynb
 sample.py
