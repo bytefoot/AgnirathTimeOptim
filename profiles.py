@@ -29,11 +29,12 @@ def extract_profiles(car, solar_panel, velocity_profile, route_df):
     
     velocity_profile, acceleration_profile, energy_consumpution_profile, solar_energy_profile = map(np.array, (velocity_profile, acceleration, energy_consumpution, solar_energy))
     
-    net_energy_profile = energy_consumpution_profile + solar_energy_profile
-    battery_profile = config.BatteryCapacity - net_energy_profile.cumsum()
+    net_energy_profile = energy_consumpution_profile.cumsum() - solar_energy_profile.cumsum()
+    battery_profile = config.BatteryCapacity - net_energy_profile
     battery_profile = np.concatenate((np.array([config.BatteryCapacity]), battery_profile))
-    battery_profile = battery_profile * 100 / config.BatteryCapacity
 
+    battery_profile = battery_profile * 100 / config.BatteryCapacity
+    energy_consumpution=energy_consumpution_profile.cumsum()
     distances = np.append([0], route_df['CumulativeDistance(km)'])
 
     return [
@@ -41,7 +42,7 @@ def extract_profiles(car, solar_panel, velocity_profile, route_df):
         velocity_profile,
         np.concatenate((np.array([np.nan]), acceleration_profile,)),
         battery_profile,
-        np.concatenate((np.array([np.nan]), energy_consumpution_profile,)),
+        np.concatenate((np.array([np.nan]), energy_consumpution,)),
         np.concatenate((np.array([np.nan]), solar_energy_profile)),
         np.array(time)
     ]

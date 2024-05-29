@@ -62,6 +62,7 @@ def create_app(
                 html.H2("Summary", style={'text-align': 'center', 'font-family': '"Space Grotesk", sans-serif'}),
                 html.P(f"Total Distance: {round(distances[-1], 3)} km"),
                 html.P(f"Time Taken: {time[-1]//3600}hrs {(time[-1]%3600)//60}mins {round(((time[-1]%3600)%60), 3)}secs"),
+                html.P(f"No of points: {len(distances)}pts"),
 
             ], style={'width': '25%', 'display': 'inline-block', 'vertical-align': 'top', 'padding-left': '20px', **custom_styles}),
             
@@ -127,7 +128,7 @@ def create_app(
     return app
 
 if __name__ == '__main__':
-    output = pd.read_csv("./runlog/run_dat.csv")
+    output = pd.read_csv("run_dat.csv")
     distances, velocity_profile, acceleration_profile, battery_profile, energy_consumption_profile, solar_profile, time = map(np.array, (output[c] for c in output.columns.to_list()))
 
     app = create_app(
