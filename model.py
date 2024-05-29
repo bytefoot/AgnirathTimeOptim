@@ -96,7 +96,7 @@ class Motor:
             + self.mass * acceleration   # Adjusted for efficiency
             + self.mass * config.g * np.sin(slope)
         ) * abs(speed)/eta
-        print(drag_force*speed,self.mass * acceleration*speed, self.rolling_resistance * speed)
+        # print(drag_force*speed,self.mass * acceleration*speed, self.rolling_resistance * speed)
         return max(power, 0)
 
 class ElectricCar:
@@ -126,7 +126,7 @@ class ElectricCar:
 
 
 def main():
-    route_df = pd.read_csv("temp_route_data_small.csv")
+    route_df = pd.read_csv("./data/raw/temp_route_data.csv")
 
     motor = Motor(
         config.WheelRadius, config.Mass, config.Wheels,
