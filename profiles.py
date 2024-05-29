@@ -1,48 +1,37 @@
 import numpy as np
-import config
 
-def extract_profiles(car, solar_panel, velocity_profile, route_df):
+from config import BatteryCapacity
+from car import calculate_dt, calculate_power
+from solar import calculate_incident_solarpower
 
-    # Variables to keep track of:
-    time_elapsed = 0
-    time = [0]
-    acceleration = []
-    energy_consumpution = []
-    solar_energy = []
-    distance_travelled = 0
-
-    for i in range(len(velocity_profile)-1):
-        dt, dx, P, dE = car.drive_sim(
-            velocity_profile[i], velocity_profile[i+1],
-            route_df.iloc[i, 0], route_df.iloc[i, 2]
-        )
-
-        solE = solar_panel.calculate_energy(dt, time_elapsed, route_df.iloc[0, 3], route_df.iloc[0, 4])
-
-        energy_consumpution.append(dE)
-        solar_energy.append(solE)
-        acceleration.append((velocity_profile[i+1] - velocity_profile[i])/dt)
-
-        time_elapsed += dt
-        distance_travelled += dx
-        time.append(time_elapsed)
+def extract_profiles(velocity_profile, segment_array, slope_array, lattitude_array, longitude_array):
+    start_speeds, stop_speeds = velocity_profile[:-1], velocity_profile[1:]
     
-    velocity_profile, acceleration_profile, energy_consumpution_profile, solar_energy_profile = map(np.array, (velocity_profile, acceleration, energy_consumpution, solar_energy))
-    
-    net_energy_profile = energy_consumpution_profile.cumsum() - solar_energy_profile.cumsum()
-    battery_profile = config.BatteryCapacity - net_energy_profile
-    battery_profile = np.concatenate((np.array([config.BatteryCapacity]), battery_profile))
+    avg_speed = (start_speeds + stop_speeds) / 2
+    dt = calculate_dt(start_speeds, stop_speeds, segment_array)
+    acceleration = (stop_speeds - start_speeds) / dt
 
-    battery_profile = battery_profile * 100 / config.BatteryCapacity
-    energy_consumpution=energy_consumpution_profile.cumsum()
-    distances = np.append([0], route_df['CumulativeDistance(km)'])
+    P = calculate_power(avg_speed, acceleration, slope_array)
+    SolP = calculate_incident_solarpower(dt.cumsum(), lattitude_array, longitude_array)
+
+    energy_consumption = P * dt /3600
+    energy_gain = SolP * dt /3600
+
+    net_energy_profile = energy_consumption.cumsum() - energy_gain.cumsum()
+    
+    battery_profile = BatteryCapacity - net_energy_profile
+    battery_profile = np.concatenate((np.array([BatteryCapacity]), battery_profile))
+
+    battery_profile = battery_profile * 100 / BatteryCapacity
+
+    distances = np.append([0], segment_array.cumsum())
 
     return [
         distances,
         velocity_profile,
-        np.concatenate((np.array([np.nan]), acceleration_profile,)),
+        np.concatenate((np.array([np.nan]), acceleration,)),
         battery_profile,
-        np.concatenate((np.array([np.nan]), energy_consumpution,)),
-        np.concatenate((np.array([np.nan]), solar_energy_profile)),
-        np.array(time)
+        np.concatenate((np.array([np.nan]), energy_consumption,)),
+        np.concatenate((np.array([np.nan]), energy_gain)),
+        np.concatenate((np.array([0]), dt.cumsum())),
     ]

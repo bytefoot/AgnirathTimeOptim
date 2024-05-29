@@ -60,7 +60,7 @@ def create_app(
             # Textual summary next to velocity profile
             html.Div([
                 html.H2("Summary", style={'text-align': 'center', 'font-family': '"Space Grotesk", sans-serif'}),
-                html.P(f"Total Distance: {round(distances[-1], 3)} km"),
+                html.P(f"Total Distance: {round(distances[-1]/1000, 3)} km"),
                 html.P(f"Time Taken: {time[-1]//3600}hrs {(time[-1]%3600)//60}mins {round(((time[-1]%3600)%60), 3)}secs"),
                 html.P(f"No of points: {len(distances)}pts"),
 
@@ -74,7 +74,7 @@ def create_app(
                 html.Div([
                     html.Div([
                         html.P(f"Max Velocity: {round(max(velocity_profile), 3)} m/s"),
-                        html.P(f"Avg Velocity: {round(max(velocity_profile), 3)} m/s"),
+                        html.P(f"Avg Velocity: {round(sum(velocity_profile)/len(velocity_profile), 3)} m/s"),
                     ], style={'width': '50%'}),
                     html.Div([
                         html.P(f"Average Battery Level: {sum(battery_profile)/len(battery_profile):.2f}%")
@@ -119,6 +119,22 @@ def create_app(
                 figure={
                     'data': [go.Scatter(x=distances[1:], y=solar_profile[1:], mode='lines+markers', name='Solar')],
                     'layout': go.Layout(title='Solar Profile', xaxis={'title': 'Distance'}, yaxis={'title': 'Solar Energy'})
+                },
+                style={'width': '45%', 'display': 'inline-block', **custom_styles}
+            ),
+            dcc.Graph(
+                id='net-energy-consumption-profile',
+                figure={
+                    'data': [go.Scatter(x=distances[1:], y=energy_consumption_profile[1:].cumsum(), mode='lines+markers', name='Energy Consumption')],
+                    'layout': go.Layout(title='Net Energy Consumption Profile', xaxis={'title': 'Distance'}, yaxis={'title': 'Energy Consumption'})
+                },
+                style={'width': '45%', 'display': 'inline-block', **custom_styles}
+            ),
+            dcc.Graph(
+                id='net-solar-profile',
+                figure={
+                    'data': [go.Scatter(x=distances[1:], y=solar_profile[1:].cumsum(), mode='lines+markers', name='Solar')],
+                    'layout': go.Layout(title='Net Solar Profile', xaxis={'title': 'Distance'}, yaxis={'title': 'Solar Energy'})
                 },
                 style={'width': '45%', 'display': 'inline-block', **custom_styles}
             ),
