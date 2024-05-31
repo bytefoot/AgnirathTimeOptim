@@ -77,7 +77,7 @@ def calculate_power(speed, acceleration, slope):
             + _slope_coeff * np.sin(slope)) * speed
 
     P_net = P_out + Pw + Pc + Pe + P_acc
-    return P_net.clip(0)
+    return P_net.clip(0), P_out
 
 def calculate_dt(start_speed, stop_speed, dx):
     dt = 2 * dx / (start_speed + stop_speed + EPSILON)
